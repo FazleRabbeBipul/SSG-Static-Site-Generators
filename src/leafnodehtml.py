@@ -25,6 +25,12 @@ class LeafNode(HTMLNode):
 
         # Render with attributes if present
         attr_str = "".join(f' {key}="{value}"' for key, value in self.attributes.items())
+
+        # Self-closing tags like <img>
+        if self.tag in {"img", "br", "hr", "input"}:
+            return f"<{self.tag}{attr_str}>"
+
+        # Normal tags with content
         return f"<{self.tag}{attr_str}>{self.value}</{self.tag}>"
 
 # Example tests
