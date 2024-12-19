@@ -32,30 +32,3 @@ class LeafNode(HTMLNode):
 
         # Normal tags with content
         return f"<{self.tag}{attr_str}>{self.value}</{self.tag}>"
-
-# Example tests
-def test_leaf_node():
-    # Test basic rendering
-    leaf = LeafNode("p", "This is a paragraph of text.")
-    assert leaf.to_html() == "<p>This is a paragraph of text.</p>"
-
-    # Test attributes
-    link = LeafNode("a", "Click me!", {"href": "https://www.google.com"})
-    assert link.to_html() == '<a href="https://www.google.com">Click me!</a>'
-
-    # Test raw text rendering
-    raw_text = LeafNode(None, "This is raw text.")
-    assert raw_text.to_html() == "This is raw text."
-
-    # Test error on no value
-    try:
-        LeafNode("p", None)
-    except ValueError as e:
-        assert str(e) == "LeafNode must have a value."
-    else:
-        assert False, "ValueError not raised for missing value"
-
-    print("All tests passed!")
-
-# Run tests
-test_leaf_node()
