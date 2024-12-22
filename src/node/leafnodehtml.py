@@ -1,12 +1,4 @@
-class HTMLNode:
-    def __init__(self, tag=None, value=None, attributes=None):
-        self.tag = tag
-        self.value = value
-        self.attributes = attributes if attributes else {}
-        self.children = []
-
-    def to_html(self):
-        raise NotImplementedError("This method should be implemented in subclasses")
+from src.node.htmlnode import HTMLNode
 
 class LeafNode(HTMLNode):
     def __init__(self, tag, value, attributes=None):
@@ -23,12 +15,14 @@ class LeafNode(HTMLNode):
         if self.tag is None:
             return self.value
 
-        # Render with attributes if present
-        attr_str = "".join(f' {key}="{value}"' for key, value in self.attributes.items())
+        # # Render with attributes if present
+        # attr_str = "".join(f' {key}="{value}"' for key, value in self.attributes.items())
 
-        # Self-closing tags like <img>
-        if self.tag in {"img", "br", "hr", "input"}:
-            return f"<{self.tag}{attr_str}>"
+        # # Self-closing tags like <img>
+        # if self.tag in {"img", "br", "hr", "input"}:
+        #     return f"<{self.tag}{attr_str}>"
 
         # Normal tags with content
-        return f"<{self.tag}{attr_str}>{self.value}</{self.tag}>"
+        return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
+    def __repr__(self):
+        return f"LeafNode({self.tag}, {self.value}, {self.props})"

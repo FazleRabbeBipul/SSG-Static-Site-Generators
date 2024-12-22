@@ -15,28 +15,22 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     Raises:
         ValueError: If a delimiter is unmatched in the text.
     """
+    
     new_nodes = []
-
-    for node in old_nodes:
-        if node.text_type != TextType.NORMAL_TEXT:
-            # Non-text nodes are passed through unchanged
-            new_nodes.append(node)
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
             continue
-
-        # If the text is empty, return the node as is
-        if node.text == "":
-            new_nodes.append(TextNode("", TextType.NORMAL_TEXT))
-            continue
-
-        parts = node.text.split(delimiter)
-        if len(parts) % 2 == 0:
-            raise ValueError(f"Unmatched delimiter '{delimiter}' in text: {node.text}")
-
-        for i, part in enumerate(parts):
-            if i % 2 == 0:  # Outside delimiters
-                if part:
-                    new_nodes.append(TextNode(part, TextType.NORMAL_TEXT))
-            else:  # Inside delimiters
-                if part:
-                    new_nodes.append(TextNode(part, text_type))
+        split_nodes = []
+        sections = old_node.text.split(delimiter)
+        if len(sections) % 2 == 0:
+            raise ValueError("Invalid markdown, formatted section not closed")
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
+            if i % 2 == 0:
+                split_nodes.append(TextNode(sections[i], TextType.TEXT))
+            else:
+                split_nodes.append(TextNode(sections[i], text_type))
+        new_nodes.extend(split_nodes)
     return new_nodes

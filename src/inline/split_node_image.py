@@ -13,37 +13,29 @@ def split_nodes_image(old_nodes):
         list: A new list of TextNode objects, split as necessary.
     """
     new_nodes = []
-    
-    for node in old_nodes:
-        if node.text_type != TextType.NORMAL_TEXT:
-            # Non-text nodes are passed through unchanged
-            new_nodes.append(node)
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
             continue
-        
-        # Extract images using the regex extractor
-        images = extract_markdown_images(node.text)
-        
-        if not images:
-            # No images found, just append the original node
-            new_nodes.append(node)
+        original_text = old_node.text
+        images = extract_markdown_images(original_text)
+        if len(images) == 0:
+            new_nodes.append(old_node)
             continue
-        
-        # Split the text based on images
-        last_end = 0
-        for alt_text, image_url in images:
-            # Split the text before the image
-            before_image = node.text[last_end:node.text.find(f"![{alt_text}]({image_url})")]
-            if before_image:
-                new_nodes.append(TextNode(before_image, TextType.NORMAL_TEXT))
-            
-            # Create a new TextNode for the image itself
-            new_nodes.append(TextNode(alt_text, TextType.IMAGE, image_url))
-            
-            # Update the last position after the image
-            last_end = node.text.find(f"![{alt_text}]({image_url})") + len(f"![{alt_text}]({image_url})")
-        
-        # Add the remaining text after the last image
-        if last_end < len(node.text):
-            new_nodes.append(TextNode(node.text[last_end:], TextType.NORMAL_TEXT))
-    
+        for image in images:
+            sections = original_text.split(f"![{image[0]}]({image[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, image section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(
+                TextNode(
+                    image[0],
+                    TextType.IMAGE,
+                    image[1],
+                )
+            )
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes

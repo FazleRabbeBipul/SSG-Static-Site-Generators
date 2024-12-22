@@ -3,47 +3,24 @@ from src.inline.link_extractor import extract_markdown_links
 from src.node.textnode import TextNode, TextType
 
 def split_nodes_link(old_nodes):
-    """
-    Splits a list of TextNode objects based on link markdown into multiple TextNode objects.
-    
-    Args:
-        old_nodes (list): A list of TextNode objects.
-        
-    Returns:
-        list: A new list of TextNode objects, split as necessary.
-    """
     new_nodes = []
-    
-    for node in old_nodes:
-        if node.text_type != TextType.NORMAL_TEXT:
-            # Non-text nodes are passed through unchanged
-            new_nodes.append(node)
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
             continue
-        
-        # Extract links using the regex extractor
-        links = extract_markdown_links(node.text)
-        
-        if not links:
-            # No links found, just append the original node
-            new_nodes.append(node)
+        original_text = old_node.text
+        links = extract_markdown_links(original_text)
+        if len(links) == 0:
+            new_nodes.append(old_node)
             continue
-        
-        # Split the text based on links
-        last_end = 0
-        for anchor_text, link_url in links:
-            # Split the text before the link
-            before_link = node.text[last_end:node.text.find(f"[{anchor_text}]({link_url})")]
-            if before_link:
-                new_nodes.append(TextNode(before_link, TextType.NORMAL_TEXT))
-            
-            # Create a new TextNode for the link itself
-            new_nodes.append(TextNode(anchor_text, TextType.LINK, link_url))
-            
-            # Update the last position after the link
-            last_end = node.text.find(f"[{anchor_text}]({link_url})") + len(f"[{anchor_text}]({link_url})")
-        
-        # Add the remaining text after the last link
-        if last_end < len(node.text):
-            new_nodes.append(TextNode(node.text[last_end:], TextType.NORMAL_TEXT))
-    
+        for link in links:
+            sections = original_text.split(f"[{link[0]}]({link[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, link section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes
